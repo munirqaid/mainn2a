@@ -12,8 +12,8 @@ const connectDB = async () => {
 
         await mongoose.connect(mongoUri, {
             // استخدام findOneAndUpdate() و findOneAndRemove() بدلاً من findAndModify()
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
+            
+            
         });
 
         console.log('MongoDB Connected Successfully!');
