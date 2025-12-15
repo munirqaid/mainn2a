@@ -126,9 +126,18 @@ cameraBtn.addEventListener('click', () => {
 
 
 
-closeCameraModal.addEventListener('click', () => {
+// ربط زر الإغلاق في رأس النافذة
+document.getElementById('closeCameraModal').addEventListener('click', () => {
     closeModal(cameraModal);
     stopCamera();
+});
+
+// ربط الإغلاق عند النقر خارج النافذة
+window.addEventListener('click', function(event) {
+    if (event.target.id === 'cameraModal') {
+        closeModal(cameraModal);
+        stopCamera();
+    }
 });
 
 openFileBtn.addEventListener('click', () => {
