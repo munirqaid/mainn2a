@@ -1,12 +1,15 @@
 import express from 'express';
 import multer from 'multer';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import fs from 'fs-extra';
 import { v4 as uuidv4 } from 'uuid';
 import { authenticateToken } from './auth.js';
 
 const router = express.Router();
-const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const UPLOAD_DIR = path.join(__dirname, '..', 'public', 'uploads');
 
 // التأكد من وجود مجلد التحميل
 fs.ensureDirSync(UPLOAD_DIR);

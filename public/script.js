@@ -1,6 +1,6 @@
 // ============ Global Variables ============
 let uploadedMediaUrls = [];
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = '/api';
 let currentUser = null;
 let authToken = localStorage.getItem('authToken');
 
