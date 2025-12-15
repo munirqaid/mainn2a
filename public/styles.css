@@ -494,6 +494,61 @@ body {
 }
 
 /* ============ Modal Styles ============ */
+
+.camera-modal {
+    max-width: 800px;
+    width: 90%;
+    padding: 20px;
+}
+
+.camera-stream-container {
+    position: relative;
+    width: 100%;
+    max-height: 500px;
+    overflow: hidden;
+    background-color: #000;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.camera-stream-container video,
+.camera-stream-container img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.camera-controls {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px 0;
+}
+
+.camera-controls .btn {
+    flex-grow: 1;
+    margin: 0 5px;
+}
+
+.camera-controls .btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+}
+
+.camera-controls .btn-success {
+    background-color: var(--color-cyber-aqua);
+    color: var(--bg-color);
+    border: none;
+}
+
+.camera-controls .btn-secondary {
+    background-color: var(--border-color);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+/* ============ Modal Styles ============ */
 .modal {
     display: none;
     position: fixed;

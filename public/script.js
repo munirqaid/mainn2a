@@ -71,8 +71,8 @@ const personaData = {
 // ============ DOM Elements ============
 const postContentInput = document.getElementById('postContentInput');
 const mediaFileInput = document.getElementById('mediaFileInput');
+const cameraBtn = document.getElementById('cameraBtn');
 const mediaBtn = document.getElementById('mediaBtn');
-const videoBtn = document.getElementById('videoBtn');
 const mediaPreview = document.getElementById('mediaPreview');
 const submitPostBtn = document.getElementById('submitPostBtn');
 const rightSidebar = document.getElementById('rightSidebar');
@@ -104,14 +104,138 @@ document.querySelectorAll('.modal-close').forEach(btn => {
 });
 
 // Close modal when clicking outside
-// ============ Media Upload Functions ============
+// ============ Camera/Media Modal Elements ============
+const cameraModal = document.getElementById('cameraModal');
+const closeCameraModal = document.getElementById('closeCameraModal');
+const cameraStream = document.getElementById('cameraStream');
+const cameraCanvas = document.getElementById('cameraCanvas');
+const capturedImage = document.getElementById('capturedImage');
+const captureBtn = document.getElementById('captureBtn');
+const useMediaBtn = document.getElementById('useMediaBtn');
+const openFileBtn = document.getElementById('openFileBtn');
+
+let currentStream = null;
+let capturedBlob = null;
+
+// ============ Camera/Media Functions ============
+
+cameraBtn.addEventListener('click', () => {
+    openModal(cameraModal);
+    startCamera();
+});
+
 mediaBtn.addEventListener('click', () => {
+    openModal(cameraModal);
+    // لا تبدأ الكاميرا تلقائياً، فقط افتح المودال
+});
+
+closeCameraModal.addEventListener('click', () => {
+    closeModal(cameraModal);
+    stopCamera();
+});
+
+openFileBtn.addEventListener('click', () => {
     mediaFileInput.click();
 });
 
-videoBtn.addEventListener('click', () => {
-    mediaFileInput.click();
+mediaFileInput.addEventListener('change', (event) => {
+    closeModal(cameraModal);
+    handleMediaUpload(event);
 });
+
+captureBtn.addEventListener('click', capturePhoto);
+useMediaBtn.addEventListener('click', useCapturedMedia);
+
+async function startCamera() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        cameraStream.srcObject = stream;
+        currentStream = stream;
+        cameraStream.style.display = 'block';
+        capturedImage.style.display = 'none';
+        captureBtn.style.display = 'block';
+        useMediaBtn.style.display = 'none';
+    } catch (err) {
+        console.error("Error accessing camera: ", err);
+        alert('تعذر الوصول إلى الكاميرا. قد تحتاج إلى استخدام خيار "اختيار ملف".');
+        cameraStream.style.display = 'none';
+        captureBtn.style.display = 'none';
+    }
+}
+
+function stopCamera() {
+    if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+        currentStream = null;
+    }
+}
+
+function capturePhoto() {
+    if (!currentStream) return;
+
+    const context = cameraCanvas.getContext('2d');
+    cameraCanvas.width = cameraStream.videoWidth;
+    cameraCanvas.height = cameraStream.videoHeight;
+    context.drawImage(cameraStream, 0, 0, cameraCanvas.width, cameraCanvas.height);
+
+    cameraCanvas.toBlob((blob) => {
+        capturedBlob = blob;
+        const url = URL.createObjectURL(blob);
+        capturedImage.src = url;
+        
+        // عرض الصورة الملتقطة وإخفاء البث
+        cameraStream.style.display = 'none';
+        capturedImage.style.display = 'block';
+        
+        // إظهار زر الاستخدام
+        captureBtn.style.display = 'none';
+        useMediaBtn.style.display = 'block';
+        stopCamera();
+    }, 'image/jpeg');
+}
+
+async function useCapturedMedia() {
+    if (!capturedBlob) return;
+
+    // إنشاء ملف من الـ Blob
+    const file = new File([capturedBlob], `captured_photo_${Date.now()}.jpeg`, { type: 'image/jpeg' });
+    
+    // إنشاء FormData وإرسال الملف
+    const formData = new FormData();
+    formData.append('files', file);
+
+    closeModal(cameraModal);
+    
+    try {
+        // 1. عرض مؤشر التحميل
+        mediaPreview.innerHTML = '<p class="loading-text">جاري تحميل الصورة الملتقطة... <i class="fas fa-spinner fa-spin"></i></p>';
+        
+        // 2. إرسال الملف إلى نقطة النهاية /api/upload
+        const response = await fetch(`${API_BASE_URL}/upload`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            uploadedMediaUrls = data.files;
+            displayMediaPreview(uploadedMediaUrls);
+        } else {
+            alert(`فشل التحميل: ${data.error}`);
+            mediaPreview.innerHTML = '';
+        }
+    } catch (error) {
+        console.error('Upload error:', error);
+        alert('حدث خطأ أثناء رفع الملف الملتقط.');
+        mediaPreview.innerHTML = '';
+    }
+}
+
+// ============ Media Upload Functions ============
 
 mediaFileInput.addEventListener('change', handleMediaUpload);
 

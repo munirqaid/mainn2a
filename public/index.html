@@ -82,9 +82,13 @@
                             <i class="fas fa-image"></i>
                             <span>صورة</span>
                         </button>
-                        <button class="composer-btn" id="videoBtn">
-                            <i class="fas fa-video"></i>
-                            <span>فيديو</span>
+                        <button class="composer-btn" id="cameraBtn">
+                            <i class="fas fa-camera"></i>
+                            <span>كاميرا</span>
+                        </button>
+                        <button class="composer-btn" id="mediaBtn">
+                            <i class="fas fa-image"></i>
+                            <span>صورة/فيديو</span>
                         </button>
                         <button class="composer-btn">
                             <i class="fas fa-face-smile"></i>
@@ -158,6 +162,32 @@
         </div>
     </div>
 
+    <!-- Modal للكاميرا -->
+    <div id="cameraModal" class="modal">
+        <div class="modal-content camera-modal">
+            <div class="modal-header">
+                <h2>الكاميرا والوسائط</h2>
+                <button class="modal-close" id="closeCameraModal">&times;</button>
+            </div>
+            <div class="camera-stream-container">
+                <video id="cameraStream" autoplay playsinline></video>
+                <canvas id="cameraCanvas" style="display: none;"></canvas>
+                <img id="capturedImage" style="display: none;">
+            </div>
+            <div class="camera-controls">
+                <button class="btn btn-secondary" id="openFileBtn">
+                    <i class="fas fa-upload"></i> اختيار ملف
+                </button>
+                <button class="btn btn-primary" id="captureBtn">
+                    <i class="fas fa-camera"></i> التقاط
+                </button>
+                <button class="btn btn-success" id="useMediaBtn" style="display: none;">
+                    <i class="fas fa-check"></i> استخدام
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal للبحث -->
     <div id="searchModal" class="modal">
         <div class="modal-content search-modal">
@@ -172,7 +202,7 @@
     </div>
 
     <!-- حقل إدخال ملف مخفي -->
-    <input type="file" id="mediaFileInput" accept="image/*,video/*" style="display: none;">
+    <input type="file" id="mediaFileInput" accept="image/*,video/*" style="display: none;" multiple>
 
     <script src="post-interactions.js"></script>
     <script src="script.js"></script>
