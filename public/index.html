@@ -69,7 +69,7 @@
                     <div class="composer-header">
                         <img src="https://picsum.photos/40/40?random=1" alt="صورتك" class="composer-avatar">
                         <div class="composer-input-wrapper">
-                            <input type="text" class="composer-input" placeholder="اكتب منشورك هنا... (مدعوم بالذكاء الاصطناعي)">
+                            <textarea id="postContentInput" class="composer-input" placeholder="اكتب منشورك هنا... (مدعوم بالذكاء الاصطناعي)"></textarea>
                         </div>
                         <button class="composer-emoji-btn">
                             <i class="fas fa-face-smile"></i>
@@ -77,11 +77,12 @@
                     </div>
                     <div class="composer-divider"></div>
                     <div class="composer-footer">
-                        <button class="composer-btn">
+                        <div id="mediaPreview" class="media-preview"></div>
+                        <button class="composer-btn" id="mediaBtn">
                             <i class="fas fa-image"></i>
                             <span>صورة</span>
                         </button>
-                        <button class="composer-btn">
+                        <button class="composer-btn" id="videoBtn">
                             <i class="fas fa-video"></i>
                             <span>فيديو</span>
                         </button>
@@ -92,6 +93,10 @@
                         <button class="composer-btn">
                             <i class="fas fa-poll"></i>
                             <span>استطلاع</span>
+                        </button>
+                        <button class="composer-btn post-submit-btn" id="submitPostBtn">
+                            <i class="fas fa-paper-plane"></i>
+                            <span>نشر</span>
                         </button>
                     </div>
                 </section>

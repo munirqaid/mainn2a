@@ -1,4 +1,5 @@
 // ============ Global Variables ============
+let uploadedMediaUrls = [];
 const API_BASE_URL = 'http://localhost:3000/api';
 let currentUser = null;
 let authToken = localStorage.getItem('authToken');
@@ -68,6 +69,12 @@ const personaData = {
 };
 
 // ============ DOM Elements ============
+const postContentInput = document.getElementById('postContentInput');
+const mediaFileInput = document.getElementById('mediaFileInput');
+const mediaBtn = document.getElementById('mediaBtn');
+const videoBtn = document.getElementById('videoBtn');
+const mediaPreview = document.getElementById('mediaPreview');
+const submitPostBtn = document.getElementById('submitPostBtn');
 const rightSidebar = document.getElementById('rightSidebar');
 const personaSelect = document.getElementById('personaSelect');
 const feedSection = document.getElementById('feedSection');
@@ -95,6 +102,118 @@ document.querySelectorAll('.modal-close').forEach(btn => {
         this.closest('.modal').classList.remove('active');
     });
 });
+
+// Close modal when clicking outside
+// ============ Media Upload Functions ============
+mediaBtn.addEventListener('click', () => {
+    mediaFileInput.click();
+});
+
+videoBtn.addEventListener('click', () => {
+    mediaFileInput.click();
+});
+
+mediaFileInput.addEventListener('change', handleMediaUpload);
+
+async function handleMediaUpload(event) {
+    const files = event.target.files;
+    if (files.length === 0) return;
+
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]);
+    }
+
+    try {
+        // 1. عرض مؤشر التحميل
+        mediaPreview.innerHTML = '<p class="loading-text">جاري التحميل... <i class="fas fa-spinner fa-spin"></i></p>';
+        
+        // 2. إرسال الملفات إلى نقطة النهاية /api/upload
+        const response = await fetch(`${API_BASE_URL}/upload`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            uploadedMediaUrls = data.files;
+            displayMediaPreview(uploadedMediaUrls);
+        } else {
+            alert(`فشل التحميل: ${data.error}`);
+            mediaPreview.innerHTML = '';
+        }
+    } catch (error) {
+        console.error('Upload error:', error);
+        alert('حدث خطأ أثناء رفع الملفات.');
+        mediaPreview.innerHTML = '';
+    }
+}
+
+function displayMediaPreview(urls) {
+    mediaPreview.innerHTML = '';
+    urls.forEach(url => {
+        const ext = url.split('.').pop().toLowerCase();
+        let element;
+        if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+            element = document.createElement('img');
+            element.src = url;
+            element.alt = 'معاينة الصورة';
+        } else if (['mp4', 'webm', 'ogg'].includes(ext)) {
+            element = document.createElement('video');
+            element.src = url;
+            element.controls = true;
+        }
+        if (element) {
+            mediaPreview.appendChild(element);
+        }
+    });
+}
+
+// ============ Post Creation Function ============
+submitPostBtn.addEventListener('click', createPost);
+
+async function createPost() {
+    const content = postContentInput.value.trim();
+    
+    if (!content && uploadedMediaUrls.length === 0) {
+        alert('لا يمكن نشر منشور فارغ.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/posts`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: JSON.stringify({
+                content: content,
+                postType: uploadedMediaUrls.length > 0 ? 'media' : 'text',
+                mediaUrls: uploadedMediaUrls
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alert('تم نشر المنشور بنجاح!');
+            postContentInput.value = '';
+            uploadedMediaUrls = [];
+            mediaPreview.innerHTML = '';
+            loadFeed(); // إعادة تحميل الخلاصة
+        } else {
+            alert(`فشل النشر: ${data.error}`);
+        }
+    } catch (error) {
+        console.error('Post creation error:', error);
+        alert('حدث خطأ أثناء إنشاء المنشور.');
+    }
+}
 
 // Close modal when clicking outside
 window.addEventListener('click', function(event) {
