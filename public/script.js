@@ -303,13 +303,16 @@ submitPostBtn.addEventListener('click', createPost);
 async function createPost() {
     const content = postContentInput.value.trim();
     
-    if (!content && uploadedMediaUrls.length === 0) {
-        alert('لا يمكن نشر منشور فارغ.');
-        return;
-    }
+        if (!content && uploadedMediaUrls.length === 0) {
+            alert('لا يمكن نشر منشور فارغ.');
+            return;
+        }
 
-    try {
-        const response = await fetch(`${API_BASE_URL}/posts`, {
+        submitPostBtn.disabled = true;
+        submitPostBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>جاري النشر...</span>';
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/posts`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -325,17 +328,21 @@ async function createPost() {
         const data = await response.json();
 
         if (response.ok) {
-            alert('تم نشر المنشور بنجاح!');
+            // إزالة التنبيه واستبداله بتنظيف الواجهة وإعادة تحميل الخلاصة
             postContentInput.value = '';
             uploadedMediaUrls = [];
             mediaPreview.innerHTML = '';
             loadFeed(); // إعادة تحميل الخلاصة
         } else {
-            alert(`فشل النشر: ${data.error}`);
+            console.error('Post creation failed:', data.error);
+            alert(`فشل النشر: ${data.error || 'خطأ غير معروف'}`);
         }
     } catch (error) {
         console.error('Post creation error:', error);
-        alert('حدث خطأ أثناء إنشاء المنشور.');
+        alert('حدث خطأ أثناء إنشاء المنشور. يرجى التحقق من اتصال الشبكة.');
+    } finally {
+        submitPostBtn.disabled = false;
+        submitPostBtn.innerHTML = '<i class="fas fa-paper-plane"></i> <span>نشر</span>';
     }
 }
 
@@ -381,21 +388,27 @@ function updateSidebar(personaKey) {
 }
 
 // ============ Feed Functions ============
-async function loadFeed() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/posts`);
-        const data = await response.json();
-        
-        if (data.posts && data.posts.length > 0) {
-            displayPosts(data.posts);
-        } else {
-            feedSection.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">لا توجد منشورات حالياً</p>';
+    async function loadFeed() {
+        feedSection.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;"><i class="fas fa-spinner fa-spin"></i> جاري تحميل المنشورات...</p>';
+        try {
+            const response = await fetch(`${API_BASE_URL}/posts`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.posts && data.posts.length > 0) {
+                displayPosts(data.posts);
+            } else {
+                feedSection.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">لا توجد منشورات حالياً</p>';
+            }
+        } catch (error) {
+            console.error('Error loading feed:', error);
+            feedSection.innerHTML = '<p style="text-align: center; color: red; padding: 2rem;"><i class="fas fa-exclamation-triangle"></i> حدث خطأ في تحميل الخلاصة. يرجى المحاولة لاحقاً.</p>';
         }
-    } catch (error) {
-        console.error('Error loading feed:', error);
-        feedSection.innerHTML = '<p style="text-align: center; color: red; padding: 2rem;">حدث خطأ في تحميل الخلاصة</p>';
     }
-}
 
 function displayPosts(posts) {
     feedSection.innerHTML = '';
