@@ -10,11 +10,9 @@ const connectDB = async () => {
             throw new Error('MONGO_URI is not defined in environment variables');
         }
 
-        await mongoose.connect(mongoUri, {
-            // استخدام findOneAndUpdate() و findOneAndRemove() بدلاً من findAndModify()
-            
-            
-        });
+        // تم إزالة خيارات الاتصال المهملة (مثل useNewUrlParser و useUnifiedTopology)
+        // لأن Mongoose v6+ يستخدمها افتراضياً.
+        await mongoose.connect(mongoUri);
 
         console.log('MongoDB Connected Successfully!');
     } catch (err) {
