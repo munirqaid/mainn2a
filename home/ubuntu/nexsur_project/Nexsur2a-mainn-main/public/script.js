@@ -1,6 +1,5 @@
 // ============ Global Variables ============
-let uploadedMediaUrls = [];
-const API_BASE_URL = '/api';
+const API_BASE_URL = 'http://localhost:3000/api';
 let currentUser = null;
 let authToken = localStorage.getItem('authToken');
 
@@ -69,12 +68,6 @@ const personaData = {
 };
 
 // ============ DOM Elements ============
-const postContentInput = document.getElementById('postContentInput');
-const mediaFileInput = document.getElementById('mediaFileInput');
-const cameraBtn = document.getElementById('cameraBtn');
-
-const mediaPreview = document.getElementById('mediaPreview');
-const submitPostBtn = document.getElementById('submitPostBtn');
 const rightSidebar = document.getElementById('rightSidebar');
 const personaSelect = document.getElementById('personaSelect');
 const feedSection = document.getElementById('feedSection');
@@ -102,246 +95,6 @@ document.querySelectorAll('.modal-close').forEach(btn => {
         this.closest('.modal').classList.remove('active');
     });
 });
-
-// Close modal when clicking outside
-// ============ Camera/Media Modal Elements ============
-const cameraModal = document.getElementById('cameraModal');
-const closeCameraModal = document.getElementById('closeCameraModal');
-const cameraStream = document.getElementById('cameraStream');
-const cameraCanvas = document.getElementById('cameraCanvas');
-const capturedImage = document.getElementById('capturedImage');
-const captureBtn = document.getElementById('captureBtn');
-const useMediaBtn = document.getElementById('useMediaBtn');
-const openFileBtn = document.getElementById('openFileBtn');
-
-let currentStream = null;
-let capturedBlob = null;
-
-// ============ Camera/Media Functions ============
-
-cameraBtn.addEventListener('click', () => {
-    openModal(cameraModal);
-    startCamera();
-});
-
-
-
-closeCameraModal.addEventListener('click', () => {
-    closeModal(cameraModal);
-    stopCamera();
-});
-
-openFileBtn.addEventListener('click', () => {
-    mediaFileInput.click();
-});
-
-mediaFileInput.addEventListener('change', (event) => {
-    closeModal(cameraModal);
-    handleMediaUpload(event);
-});
-
-captureBtn.addEventListener('click', capturePhoto);
-useMediaBtn.addEventListener('click', useCapturedMedia);
-
-async function startCamera() {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-        cameraStream.srcObject = stream;
-        currentStream = stream;
-        cameraStream.style.display = 'block';
-        capturedImage.style.display = 'none';
-        captureBtn.style.display = 'block';
-        useMediaBtn.style.display = 'none';
-    } catch (err) {
-        console.error("Error accessing camera: ", err);
-        alert('تعذر الوصول إلى الكاميرا. قد تحتاج إلى استخدام خيار "اختيار ملف".');
-        cameraStream.style.display = 'none';
-        captureBtn.style.display = 'none';
-    }
-}
-
-function stopCamera() {
-    if (currentStream) {
-        currentStream.getTracks().forEach(track => track.stop());
-        currentStream = null;
-    }
-}
-
-function capturePhoto() {
-    if (!currentStream) return;
-
-    const context = cameraCanvas.getContext('2d');
-    cameraCanvas.width = cameraStream.videoWidth;
-    cameraCanvas.height = cameraStream.videoHeight;
-    context.drawImage(cameraStream, 0, 0, cameraCanvas.width, cameraCanvas.height);
-
-    cameraCanvas.toBlob((blob) => {
-        capturedBlob = blob;
-        const url = URL.createObjectURL(blob);
-        capturedImage.src = url;
-        
-        // عرض الصورة الملتقطة وإخفاء البث
-        cameraStream.style.display = 'none';
-        capturedImage.style.display = 'block';
-        
-        // إظهار زر الاستخدام
-        captureBtn.style.display = 'none';
-        useMediaBtn.style.display = 'block';
-        stopCamera();
-    }, 'image/jpeg');
-}
-
-async function useCapturedMedia() {
-    if (!capturedBlob) return;
-
-    // إنشاء ملف من الـ Blob
-    const file = new File([capturedBlob], `captured_photo_${Date.now()}.jpeg`, { type: 'image/jpeg' });
-    
-    // إنشاء FormData وإرسال الملف
-    const formData = new FormData();
-    formData.append('files', file);
-
-    closeModal(cameraModal);
-    
-    try {
-        // 1. عرض مؤشر التحميل
-        mediaPreview.innerHTML = '<p class="loading-text">جاري تحميل الصورة الملتقطة... <i class="fas fa-spinner fa-spin"></i></p>';
-        
-        // 2. إرسال الملف إلى نقطة النهاية /api/upload
-        const response = await fetch(`${API_BASE_URL}/upload`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${authToken}`
-            },
-            body: formData
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            uploadedMediaUrls = data.files;
-            displayMediaPreview(uploadedMediaUrls);
-        } else {
-            alert(`فشل التحميل: ${data.error}`);
-            mediaPreview.innerHTML = '';
-        }
-    } catch (error) {
-        console.error('Upload error:', error);
-        alert('حدث خطأ أثناء رفع الملف الملتقط.');
-        mediaPreview.innerHTML = '';
-    }
-}
-
-// ============ Media Upload Functions ============
-
-mediaFileInput.addEventListener('change', handleMediaUpload);
-
-async function handleMediaUpload(event) {
-    const files = event.target.files;
-    if (files.length === 0) return;
-
-    const formData = new FormData();
-    for (let i = 0; i < files.length; i++) {
-        formData.append('files', files[i]);
-    }
-
-    try {
-        // 1. عرض مؤشر التحميل
-        mediaPreview.innerHTML = '<p class="loading-text">جاري التحميل... <i class="fas fa-spinner fa-spin"></i></p>';
-        
-        // 2. إرسال الملفات إلى نقطة النهاية /api/upload
-        const response = await fetch(`${API_BASE_URL}/upload`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${authToken}`
-            },
-            body: formData
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            uploadedMediaUrls = data.files;
-            displayMediaPreview(uploadedMediaUrls);
-        } else {
-            alert(`فشل التحميل: ${data.error}`);
-            mediaPreview.innerHTML = '';
-        }
-    } catch (error) {
-        console.error('Upload error:', error);
-        alert('حدث خطأ أثناء رفع الملفات.');
-        mediaPreview.innerHTML = '';
-    }
-}
-
-function displayMediaPreview(urls) {
-    mediaPreview.innerHTML = '';
-    urls.forEach(url => {
-        const ext = url.split('.').pop().toLowerCase();
-        let element;
-        if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
-            element = document.createElement('img');
-            element.src = url;
-            element.alt = 'معاينة الصورة';
-        } else if (['mp4', 'webm', 'ogg'].includes(ext)) {
-            element = document.createElement('video');
-            element.src = url;
-            element.controls = true;
-        }
-        if (element) {
-            mediaPreview.appendChild(element);
-        }
-    });
-}
-
-// ============ Post Creation Function ============
-submitPostBtn.addEventListener('click', createPost);
-
-async function createPost() {
-    const content = postContentInput.value.trim();
-    
-        if (!content && uploadedMediaUrls.length === 0) {
-            alert('لا يمكن نشر منشور فارغ.');
-            return;
-        }
-
-        submitPostBtn.disabled = true;
-        submitPostBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>جاري النشر...</span>';
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/posts`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authToken}`
-            },
-            body: JSON.stringify({
-                content: content,
-                postType: uploadedMediaUrls.length > 0 ? 'media' : 'text',
-                mediaUrls: uploadedMediaUrls
-            })
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            // إزالة التنبيه واستبداله بتنظيف الواجهة وإعادة تحميل الخلاصة
-            postContentInput.value = '';
-            uploadedMediaUrls = [];
-            mediaPreview.innerHTML = '';
-            loadFeed(); // إعادة تحميل الخلاصة
-        } else {
-            console.error('Post creation failed:', data.error);
-            alert(`فشل النشر: ${data.error || 'خطأ غير معروف'}`);
-        }
-    } catch (error) {
-        console.error('Post creation error:', error);
-        alert('حدث خطأ أثناء إنشاء المنشور. يرجى التحقق من اتصال الشبكة.');
-    } finally {
-        submitPostBtn.disabled = false;
-        submitPostBtn.innerHTML = '<i class="fas fa-paper-plane"></i> <span>نشر</span>';
-    }
-}
 
 // Close modal when clicking outside
 window.addEventListener('click', function(event) {
@@ -385,27 +138,21 @@ function updateSidebar(personaKey) {
 }
 
 // ============ Feed Functions ============
-    async function loadFeed() {
-        feedSection.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;"><i class="fas fa-spinner fa-spin"></i> جاري تحميل المنشورات...</p>';
-        try {
-            const response = await fetch(`${API_BASE_URL}/posts`);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            
-            if (data.posts && data.posts.length > 0) {
-                displayPosts(data.posts);
-            } else {
-                feedSection.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">لا توجد منشورات حالياً</p>';
-            }
-        } catch (error) {
-            console.error('Error loading feed:', error);
-            feedSection.innerHTML = '<p style="text-align: center; color: red; padding: 2rem;"><i class="fas fa-exclamation-triangle"></i> حدث خطأ في تحميل الخلاصة. يرجى المحاولة لاحقاً.</p>';
+async function loadFeed() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/posts`);
+        const data = await response.json();
+        
+        if (data.posts && data.posts.length > 0) {
+            displayPosts(data.posts);
+        } else {
+            feedSection.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">لا توجد منشورات حالياً</p>';
         }
+    } catch (error) {
+        console.error('Error loading feed:', error);
+        feedSection.innerHTML = '<p style="text-align: center; color: red; padding: 2rem;">حدث خطأ في تحميل الخلاصة</p>';
     }
+}
 
 function displayPosts(posts) {
     feedSection.innerHTML = '';

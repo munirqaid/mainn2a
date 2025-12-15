@@ -69,20 +69,29 @@
                     <div class="composer-header">
                         <img src="https://picsum.photos/40/40?random=1" alt="صورتك" class="composer-avatar">
                         <div class="composer-input-wrapper">
-                            <textarea id="postContentInput" class="composer-input" placeholder="اكتب منشورك هنا... (مدعوم بالذكاء الاصطناعي)"></textarea>
+                            <input type="text" class="composer-input" placeholder="اكتب منشورك هنا... (مدعوم بالذكاء الاصطناعي)">
                         </div>
-
+                        <button class="composer-emoji-btn">
+                            <i class="fas fa-face-smile"></i>
+                        </button>
                     </div>
                     <div class="composer-divider"></div>
                     <div class="composer-footer">
-                        <div id="mediaPreview" class="media-preview"></div>
-                        <button class="composer-btn" id="cameraBtn">
-                            <i class="fas fa-camera"></i>
-                            <span>كاميرا/وسائط</span>
+                        <button class="composer-btn">
+                            <i class="fas fa-image"></i>
+                            <span>صورة</span>
                         </button>
-                        <button class="composer-btn post-submit-btn" id="submitPostBtn">
-                            <i class="fas fa-paper-plane"></i>
-                            <span>نشر</span>
+                        <button class="composer-btn">
+                            <i class="fas fa-video"></i>
+                            <span>فيديو</span>
+                        </button>
+                        <button class="composer-btn">
+                            <i class="fas fa-face-smile"></i>
+                            <span>شعور</span>
+                        </button>
+                        <button class="composer-btn">
+                            <i class="fas fa-poll"></i>
+                            <span>استطلاع</span>
                         </button>
                     </div>
                 </section>
@@ -144,32 +153,6 @@
         </div>
     </div>
 
-    <!-- Modal للكاميرا -->
-    <div id="cameraModal" class="modal">
-        <div class="modal-content camera-modal">
-            <div class="modal-header">
-                <h2>الكاميرا والوسائط</h2>
-                <button class="modal-close" id="closeCameraModal">&times;</button>
-            </div>
-            <div class="camera-stream-container">
-                <video id="cameraStream" autoplay playsinline></video>
-                <canvas id="cameraCanvas" style="display: none;"></canvas>
-                <img id="capturedImage" style="display: none;">
-            </div>
-            <div class="camera-controls">
-                <button class="btn btn-secondary" id="openFileBtn">
-                    <i class="fas fa-upload"></i> اختيار ملف
-                </button>
-                <button class="btn btn-primary" id="captureBtn">
-                    <i class="fas fa-camera"></i> التقاط
-                </button>
-                <button class="btn btn-success" id="useMediaBtn" style="display: none;">
-                    <i class="fas fa-check"></i> استخدام
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- Modal للبحث -->
     <div id="searchModal" class="modal">
         <div class="modal-content search-modal">
@@ -184,7 +167,7 @@
     </div>
 
     <!-- حقل إدخال ملف مخفي -->
-    <input type="file" id="mediaFileInput" accept="image/*,video/*" style="display: none;" multiple>
+    <input type="file" id="mediaFileInput" accept="image/*,video/*" style="display: none;">
 
     <script src="post-interactions.js"></script>
     <script src="script.js"></script>
